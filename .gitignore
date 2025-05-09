@@ -1,0 +1,44 @@
+node_modules
+.qodo
+
+# Environment files
+.env
+.env.local
+.env.*.local
+.env.development
+.env.test
+.env.production
+
+# System files
+.DS_Store
+.vscode
+.idea
+*.iml
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor files
+*.swp
+*.swo
+*.swn
+*~
+
+# Build/dist directories
+dist
+build
+out
+
+# Coverage directories
+coverage
+.nyc_output
+
+# Temporary files
+tmp
+temp
+.env
+.env
+.env

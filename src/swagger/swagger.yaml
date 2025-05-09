@@ -1,0 +1,971 @@
+openapi: 3.0.0
+info:
+  title: Vacua API one
+  version: 1.0.0
+  description: API documentation for Vacua platform
+
+servers:
+  - url: http://localhost:3002/api
+    description: Local development server
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+        errors:
+          type: array
+          items:
+            type: object
+    EmailVerificationRequest:
+      type: object
+      required:
+        - email
+        - role
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        role:
+          type: string
+          enum: [admin, landlord, student]
+          example: student
+    OTPVerificationRequest:
+      type: object
+      required:
+        - email
+        - otp
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        otp:
+          type: string
+          example: "123456"
+    RegistrationRequest:
+      type: object
+      required:
+        - email
+        - username
+        - password
+        - confirmPassword
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        username:
+          type: string
+          example: john_doe
+        password:
+          type: string
+          format: password
+          example: SecurePass123
+        confirmPassword:
+          type: string
+          format: password
+          example: SecurePass123
+    LoginRequest:
+      type: object
+      required:
+        - identifier
+        - password
+      properties:
+        identifier:
+          type: string
+          example: john_doe or user@example.com
+        password:
+          type: string
+          format: password
+          example: SecurePass123
+    StudentProfileRequest:
+      type: object
+      required:
+        - nationality
+        - universityName
+        - preferredLocation
+      properties:
+        nationality:
+          type: string
+          example: Canadian
+        universityName:
+          type: string
+          example: University of Toronto
+        preferredLocation:
+          type: string
+          example: Downtown Toronto
+        matricNumber:
+          type: string
+          example: 2023ABC123
+          description: Optional student matriculation number
+    LandlordProfileRequest:
+      type: object
+      required:
+        - nationality
+        - preferredLocation
+        - propertyLocation
+      properties:
+        nationality:
+          type: string
+          example: Canadian
+        preferredLocation:
+          type: string
+          example: Greater Toronto Area
+        propertyLocation:
+          type: string
+          example: 123 Main St, Toronto
+
+paths:
+  /auth/verify-email:
+    post:
+      summary: Step 1 - Initiate email verification
+      description: Send OTP to the provided email address
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailVerificationRequest'
+      responses:
+        '200':
+          description: OTP sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: OTP sent successfully
+                  data:
+                    type: object
+                    properties:
+                      email:
+                        type: string
+                        example: user@example.com
+                      role:
+                        type: string
+                        example: student
+
+  /auth/verify-otp:
+    post:
+      summary: Step 2 - Verify OTP
+      description: Verify the OTP sent to email
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OTPVerificationRequest'
+      responses:
+        '200':
+          description: OTP verified successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: OTP verified successfully
+                  data:
+                    type: object
+                    properties:
+                      email:
+                        type: string
+                        example: user@example.com
+                      role:
+                        type: string
+                        example: student
+
+  /auth/register:
+    post:
+      summary: Step 3 - Complete registration
+      description: Complete registration with username and password after OTP verification
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistrationRequest'
+      responses:
+        '201':
+          description: Registration completed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Registration completed successfully
+                  data:
+                    type: object
+                    properties:
+                      email:
+                        type: string
+                        example: user@example.com
+                      username:
+                        type: string
+                        example: john_doe
+                      role:
+                        type: string
+                        example: student
+
+  /login:
+    post:
+      summary: User Login
+      description: Login with email/username and password
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Login successful
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                      user:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                          email:
+                            type: string
+                          username:
+                            type: string
+                          role:
+                            type: string
+
+  /profile/student:
+    post:
+      summary: Create Student Profile
+      description: Create a new student profile for an authenticated user
+      tags:
+        - Profiles
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentProfileRequest'
+      responses:
+        '201':
+          description: Student profile created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Student profile created successfully
+                  data:
+                    type: object
+                    properties:
+                      userId:
+                        type: string
+                      nationality:
+                        type: string
+                      universityName:
+                        type: string
+                      preferredLocation:
+                        type: string
+                      matricNumber:
+                        type: string
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized - User not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /profile/landlord:
+    post:
+      summary: Create Landlord Profile
+      description: Create a new landlord profile for an authenticated user
+      tags:
+        - Profiles
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LandlordProfileRequest'
+      responses:
+        '201':
+          description: Landlord profile created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Landlord profile created successfully
+                  data:
+                    type: object
+                    properties:
+                      userId:
+                        type: string
+                      nationality:
+                        type: string
+                      preferredLocation:
+                        type: string
+                      propertyLocation:
+                        type: string
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized - User not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  EmailVerificationRequest:
+      type: object
+      required:
+        - email
+        - role
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        role:
+          type: string
+          enum: [student, landlord]
+          example: student
+
+EmailVerificationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: OTP sent successfully
+        data:
+          type: object
+          properties:
+            exists:
+              type: boolean
+              example: false
+            message:
+              type: string
+              example: Email verification initiated
+
+ProductRequest:
+      type: object
+      required:
+        - name
+        - description
+        - price
+        - location
+        - type
+        - images
+      properties:
+        name:
+          type: string
+          example: "MacBook Pro"
+        description:
+          type: string
+          example: "2021 MacBook Pro in excellent condition"
+        price:
+          type: number
+          example: 1200
+        location:
+          type: string
+          example: "Toronto, ON"
+        type:
+          type: string
+          enum: [product, service, giveaway]
+          example: product
+        images:
+          type: array
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+                example: "uploads/123e4567-e89b-12d3-a456-426614174000"
+
+UploadURLResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            uploadURL:
+              type: string
+              example: "https://bucket-name.s3.region.amazonaws.com/..."
+            imageKey:
+              type: string
+              example: "uploads/123e4567-e89b-12d3-a456-426614174000"
+
+/auth/verify-email:
+    post:
+      summary: Initiate Email Verification
+      description: Send OTP to email and check if user already exists
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailVerificationRequest'
+      responses:
+        '200':
+          description: OTP sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailVerificationResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+/marketplace/upload-url:
+    get:
+      summary: Get S3 Pre-signed Upload URL
+      description: Get a pre-signed URL for direct image upload to S3
+      tags:
+        - Marketplace
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Upload URL generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadURLResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+/marketplace/listings:
+    post:
+      summary: Create New Listing
+      description: Create a new product, service, or giveaway listing
+      tags:
+        - Marketplace
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductRequest'
+      responses:
+        '201':
+          description: Listing created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Listing created successfully
+                  data:
+                    $ref: '#/components/schemas/ProductRequest'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    get:
+      summary: Get Listings
+      description: Get all listings with optional filters
+      tags:
+        - Marketplace
+      parameters:
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum: [product, service, giveaway]
+          description: Filter by listing type
+        - in: query
+          name: location
+          schema:
+            type: string
+          description: Filter by location
+      responses:
+        '200':
+          description: Listings retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProductRequest'
+Product:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        location:
+          type: string
+        type:
+          type: string
+          enum: [product, service, giveaway]
+        status:
+          type: string
+          enum: [active, sold, cancelled, deleted]
+        images:
+          type: array
+          items:
+            type: object
+            properties:
+              url:
+                type: string
+              key:
+                type: string
+        userId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+PaginatedResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+        pagination:
+          type: object
+          properties:
+            total:
+              type: number
+            page:
+              type: number
+            pages:
+              type: number
+            hasNext:
+              type: boolean
+
+
+marketplace/upload-url:
+    get:
+      summary: Get S3 Pre-signed Upload URL
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      uploadURL:
+                        type: string
+                      imageKey:
+                        type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+marketplace/listings:
+    get:
+      summary: Get all listings
+      parameters:
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum: [product, service, giveaway]
+        - in: query
+          name: location
+          schema:
+            type: string
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedResponse'
+
+    post:
+      summary: Create new listing
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - name
+                - description
+                - price
+                - location
+                - type
+                - images
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                price:
+                  type: number
+                location:
+                  type: string
+                type:
+                  type: string
+                  enum: [product, service, giveaway]
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Product'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+marketplace/listings/{id}:
+    get:
+      summary: Get listing by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Product'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      summary: Update listing
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                price:
+                  type: number
+                location:
+                  type: string
+                type:
+                  type: string
+                  enum: [product, service, giveaway]
+                status:
+                  type: string
+                  enum: [active, sold, cancelled]
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Product'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Delete listing
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+marketplace/my-listings:
+    get:
+      summary: Get user's listings
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [active, sold, cancelled, deleted]
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+marketplace/listings/search:
+    get:
+      summary: Search listings
+      parameters:
+        - in: query
+          name: query
+          schema:
+            type: string
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum: [product, service, giveaway]
+        - in: query
+          name: location
+          schema:
+            type: string
+        - in: query
+          name: minPrice
+          schema:
+            type: number
+        - in: query
+          name: maxPrice
+          schema:
+            type: number
+        - in: query
+          name: sortBy
+          schema:
+            type: string
+            enum: [createdAt, price, name]
+            default: createdAt
+        - in: query
+          name: sortOrder
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedResponse'
+
+
