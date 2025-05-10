@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import { ApiError } from '../utils/ApiError.js';
 import { Logger } from '../utils/logger.js';
 import mongoose from 'mongoose';
+import { User } from '../models/User.js'; // Add this import
 
 export const authenticateToken = async (req, res, next) => {
   try {
@@ -18,11 +19,20 @@ export const authenticateToken = async (req, res, next) => {
       throw new ApiError(401, 'Invalid token format');
     }
 
-    // Store both string and ObjectId versions
+    // Fetch the user from database
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      throw new ApiError(401, 'User not found');
+    }
+
+    // Store user data in request
     req.user = {
-      id: decoded.id,
-      idObject: new mongoose.Types.ObjectId(decoded.id),
-      role: decoded.role
+      id: user._id,
+      idObject: user._id,
+      role: user.role,
+      username: user.username,
+      isVerified: user.isVerified,
+      studentVerification: user.studentVerification
     };
 
     Logger.info('Token authenticated successfully', {
@@ -71,12 +81,15 @@ export const authorize = (roles = []) => {
 
 export const verifyStudentAuthorization = async (req, res, next) => {
   try {
+    if (!req.user) {
+      throw new ApiError(401, 'Authentication required');
+    }
+
     if (req.user.role !== 'student') {
       throw new ApiError(403, 'Only students can perform this action');
     }
     
-    const user = await User.findById(req.user.id);
-    if (!user.isVerified || user.studentVerification?.status !== 'verified') {
+    if (!req.user.isVerified || req.user.studentVerification?.status !== 'verified') {
       throw new ApiError(403, 'Student verification required');
     }
 

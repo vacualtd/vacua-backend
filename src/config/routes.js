@@ -13,7 +13,6 @@ import { authRoutes } from '../routes/authRoutes.js';
 import { landlordVerificationRoutes } from '../routes/landlordVerificationRoutes.js';
 import { verificationRoutes } from '../routes/verificationRoutes.js';
 import sharedBedRoutes from '../routes/sharedBedRoutes.js';
-import { verifyStudent } from '../middleware/studentMiddleware.js';
 import { bankAccountRoutes } from '../routes/bankAccountRoutes.js';
 const router = express.Router();
 
@@ -33,7 +32,7 @@ router.use('/call', callRoutes);
 router.use('/admin', adminRoutes);
 router.use('/landlord-verification', landlordVerificationRoutes);
 router.use('/verification', verificationRoutes);
-router.use('/shared-beds', verifyStudent, sharedBedRoutes);
+router.use('/shared-beds', sharedBedRoutes);
 router.use('/bank-account', bankAccountRoutes);
 
 export default router;
