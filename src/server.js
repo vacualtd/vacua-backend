@@ -61,11 +61,24 @@ const limiter = rateLimit({
 
 // Enhanced security middleware setup
 app.use(cors({
-  origin:  '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  origin: '*',  // Allow all origins
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'X-Requested-With',
+    'Accept',
+    'Origin',
+    'Access-Control-Allow-Origin',
+    'Access-Control-Allow-Headers'
+  ],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  maxAge: 86400, // Cache preflight results for 24 hours
+  credentials: false // Set to false when using origin: '*'
 }));
+
+// Handle preflight requests
+app.options('*', cors());
 
 app.use(helmet({
   contentSecurityPolicy: isProduction,
