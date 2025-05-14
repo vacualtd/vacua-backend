@@ -61,7 +61,7 @@ const limiter = rateLimit({
 
 // Enhanced security middleware setup
 app.use(cors({
-  origin: isProduction ? process.env.ALLOWED_ORIGINS?.split(',') : '*',
+  origin:  '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
