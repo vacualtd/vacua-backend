@@ -47,7 +47,7 @@ export const getSharedBeds = async (filters, page = 1, limit = 10) => {
 export const getSharedBedById = async (id) => {
   try {
     const sharedBed = await SharedBed.findById(id)
-      .populate('host.userId', 'username email avatar');
+      .populate('userId', 'username email avatar');
 
     if (!sharedBed) {
       throw new ApiError(404, 'Shared bed listing not found');
@@ -63,7 +63,7 @@ export const updateSharedBed = async (id, updates, userId) => {
   try {
     const sharedBed = await SharedBed.findOne({
       _id: id,
-      'host.userId': userId
+      userId: userId  // Changed from host.userId
     });
 
     if (!sharedBed) {
@@ -83,7 +83,7 @@ export const deleteSharedBed = async (id, userId) => {
   try {
     const sharedBed = await SharedBed.findOne({
       _id: id,
-      'host.userId': userId
+      userId: userId  // Changed from host.userId
     });
 
     if (!sharedBed) {
@@ -103,7 +103,7 @@ export const deleteSharedBed = async (id, userId) => {
 export const getSharedBedsByUserId = async (userId, page = 1, limit = 10) => {
   try {
     return await SharedBed.paginate(
-      { 'host.userId': userId, isActive: true },
+      { userId: userId }, // Changed from 'host.userId' to 'userId'
       {
         page: parseInt(page),
         limit: parseInt(limit),
@@ -136,7 +136,7 @@ export const unpublishSharedBed = async (id, userId) => {
   try {
     const sharedBed = await SharedBed.findOne({
       _id: id,
-      'host.userId': userId
+      userId: userId  // Changed from host.userId
     });
 
     if (!sharedBed) {

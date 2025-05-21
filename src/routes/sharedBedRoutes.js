@@ -27,9 +27,23 @@ import { body } from 'express-validator';
 
 const router = express.Router();
 
-// Apply authentication and student verification middleware globally
+// Public routes - these must come BEFORE authentication middleware
+router.get('/', 
+  (req, res, next) => {
+    req.skipAuth = true;
+    next();
+  },
+  sharedBedQueryRules,
+  validateRequest,
+  getSharedBeds
+);
+
+// Apply authentication and student verification middleware for protected routes
 router.use(authenticateToken);
 router.use(verifyStudent);
+
+// Get student's own shared bed listings
+router.get('/my-listings', getMySharedBeds);
 
 // Step-by-step creation routes
 router.post('/initialize', [
@@ -92,25 +106,12 @@ router.post('/:id/publish', publishSharedBed);
 // Unpublish shared bed
 router.post('/:id/unpublish', unpublishSharedBed);
 
-// Get student's own shared bed listings
-router.get('/my-listings', getMySharedBeds);
-
-// Public routes - Move these to the end and exclude them from authentication
-router.get('/', 
-  (req, res, next) => { 
-    req.skipAuth = true; 
-    next(); 
-  }, 
-  sharedBedQueryRules, 
-  validateRequest, 
-  getSharedBeds
-);
-
-router.get('/:id', 
-  (req, res, next) => { 
-    req.skipAuth = true; 
-    next(); 
-  }, 
+// Get shared bed by ID
+router.get('/:id',
+  (req, res, next) => {
+    req.skipAuth = true;
+    next();
+  },
   getSharedBedById
 );
 

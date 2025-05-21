@@ -6,6 +6,11 @@ import { User } from '../models/User.js'; // Add this import
 
 export const authenticateToken = async (req, res, next) => {
   try {
+    // Skip authentication if route is marked as public
+    if (req.skipAuth) {
+      return next();
+    }
+
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(' ')[1];
 
@@ -41,6 +46,10 @@ export const authenticateToken = async (req, res, next) => {
 
     next();
   } catch (error) {
+    // Skip auth errors for public routes
+    if (req.skipAuth) {
+      return next();
+    }
     Logger.error('Authentication failed:', { error: error.message });
     next(new ApiError(401, 'Authentication failed'));
   }
