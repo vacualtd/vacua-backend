@@ -14,6 +14,8 @@ import { landlordVerificationRoutes } from '../routes/landlordVerificationRoutes
 import { verificationRoutes } from '../routes/verificationRoutes.js';
 import sharedBedRoutes from '../routes/sharedBedRoutes.js';
 import { bankAccountRoutes } from '../routes/bankAccountRoutes.js';
+import stripeConnectRoutes from '../routes/stripeConnectRoutes.js';
+
 const router = express.Router();
 
 // Add login routes
@@ -34,6 +36,7 @@ router.use('/landlord-verification', landlordVerificationRoutes);
 router.use('/verification', verificationRoutes);
 router.use('/shared-beds', sharedBedRoutes);
 router.use('/bank-account', bankAccountRoutes);
+router.use('/stripe', stripeConnectRoutes); // Add Stripe Connect routes
 
 export default router;
 
